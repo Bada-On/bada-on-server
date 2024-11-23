@@ -38,3 +38,10 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+task copySecret(type: Copy) {
+    from('bada-on-config') {
+        include('*.yml')
+    }
+    into('src/main/resources')
+}

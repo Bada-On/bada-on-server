@@ -1,0 +1,4 @@
+[submodule "bada-on-config"]
+	path = bada-on-config
+	url = https://github.com/Bada-On/bada-on-config
+	branch = main
