@@ -1,8 +1,5 @@
 package nambang_swag.bada_on.exception;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import lombok.Getter;
 
 @Getter
