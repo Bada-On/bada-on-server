@@ -39,7 +39,9 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-task copySecret(type: Copy) {
+processResources.dependsOn('copySecret')
+tasks.register('copySecret', Copy) {
+    description = 'Copy submodules to project'
     from('bada-on-config') {
         include('*.yml')
     }
