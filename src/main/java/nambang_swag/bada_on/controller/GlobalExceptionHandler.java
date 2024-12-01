@@ -7,11 +7,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import lombok.extern.slf4j.Slf4j;
 import nambang_swag.bada_on.exception.BadaOnException;
 import nambang_swag.bada_on.response.ErrorResponse;
 
+@Slf4j
 @ControllerAdvice
-public class ExceptionController {
+public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorResponse> invalidRequestHandler(MethodArgumentNotValidException e) {
@@ -45,15 +47,15 @@ public class ExceptionController {
 			.code(String.valueOf(statusCode))
 			.message(e.getMessage())
 			.build();
-
 		return ResponseEntity.status(statusCode).body(body);
 	}
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> exceptionHandler(Exception e) {
+		log.error(e.toString());
 		ErrorResponse body = ErrorResponse.builder()
 			.code("500")
-			.message(e.getMessage())
+			.message("Internal Server Error")
 			.build();
 		return ResponseEntity.status(500).body(body);
 	}
