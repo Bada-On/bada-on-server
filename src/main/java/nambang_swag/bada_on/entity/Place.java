@@ -1,6 +1,10 @@
 package nambang_swag.bada_on.entity;
 
 import static jakarta.persistence.GenerationType.*;
+import static nambang_swag.bada_on.constant.Activity.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,5 +63,25 @@ public class Place {
 			case SURFING -> canSurfing = isEnabled;
 			case KAYAKING_AND_PADDLE_BOARDING -> canKayakingPaddleBoarding = isEnabled;
 		}
+	}
+
+	public List<String> getStringActivities() {
+		List<String> activities = new ArrayList<>();
+		if (this.canDiving) {
+			activities.add(DIVING.getValue());
+		}
+		if (this.canSnorkeling) {
+			activities.add(SNORKELING.getValue());
+		}
+		if (this.canSwimming) {
+			activities.add(SWIMMING.getValue());
+		}
+		if (this.canSurfing) {
+			activities.add(SURFING.getValue());
+		}
+		if (this.canKayakingPaddleBoarding) {
+			activities.add(KAYAKING_AND_PADDLE_BOARDING.getValue());
+		}
+		return activities;
 	}
 }

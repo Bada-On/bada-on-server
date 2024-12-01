@@ -2,6 +2,7 @@ package nambang_swag.bada_on.response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -24,7 +25,7 @@ public class PlaceInfo {
 		this.name = place.getName();
 		this.latitude = place.getLatitude();
 		this.longitude = place.getLongitude();
-		this.activities = activities != null ? activities : new ArrayList<>();
+		this.activities = Objects.requireNonNullElseGet(activities, ArrayList::new);
 	}
 
 }

@@ -1,5 +1,7 @@
 package nambang_swag.bada_on.service;
 
+import static nambang_swag.bada_on.constant.Activity.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,18 +40,13 @@ public class PlaceService {
 			.build();
 		placeRepository.save(place);
 
-		List<Activity> activities = request.getActivities().stream()
-			.filter(Objects::nonNull)
-			.peek(activity -> place.updateActivityStatus(activity, true))
-			.toList();
-
-		List<String> StringActivities = activities.stream()
-			.map(Activity::getValue)
-			.toList();
+		request.getActivities().stream()
+			.map(Activity::from).filter(Objects::nonNull)
+			.forEach(activity -> place.updateActivityStatus(activity, true));
 
 		return PlaceInfo.builder()
 			.place(place)
-			.activities(StringActivities)
+			.activities(place.getStringActivities())
 			.build();
 	}
 
@@ -58,7 +55,10 @@ public class PlaceService {
 
 		List<PlaceInfo> placeInfos = new ArrayList<>();
 		for (Place place : places) {
-			PlaceInfo placeInfo = PlaceInfo.builder().place(place).build();
+			PlaceInfo placeInfo = PlaceInfo.builder()
+				.place(place)
+				.activities(place.getStringActivities())
+				.build();
 			placeInfos.add(placeInfo);
 		}
 
@@ -69,7 +69,7 @@ public class PlaceService {
 	}
 
 	public PlaceList findPlaceByActivity(String activityName) {
-		Activity activity = Activity.from(activityName);
+		Activity activity = from(activityName);
 		if (activity == null) {
 			// 빈 배열 값 반환
 			return null;
@@ -78,6 +78,7 @@ public class PlaceService {
 		List<PlaceInfo> placeInfoList = placeByActivity.stream()
 			.map(place -> PlaceInfo.builder()
 				.place(place)
+				.activities(place.getStringActivities())
 				.build())
 			.toList();
 
@@ -99,9 +100,10 @@ public class PlaceService {
 		List<PlaceInfo> placeInfoList = placeList.stream()
 			.map(place -> PlaceInfo.builder()
 				.place(place)
+				.activities(place.getStringActivities())
 				.build())
 			.toList();
-		
+
 		return PlaceList.builder()
 			.places(placeInfoList)
 			.build();

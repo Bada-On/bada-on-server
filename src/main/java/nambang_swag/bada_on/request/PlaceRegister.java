@@ -5,7 +5,6 @@ import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import nambang_swag.bada_on.constant.Activity;
 import nambang_swag.bada_on.util.validation.annotation.ValidLatitude;
 import nambang_swag.bada_on.util.validation.annotation.ValidLongitude;
 
@@ -23,5 +22,5 @@ public class PlaceRegister {
 	@ValidLongitude(message = "경도는 120에서 140 사이의 값이어야 하며, XXX.XX 형식이어야 합니다.")
 	private Double longitude;
 
-	private List<Activity> activities;
+	private List<String> activities;
 }
