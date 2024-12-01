@@ -1,14 +1,18 @@
-# gradle:7.3.1-jdk17 이미지를 기반으로 함
-FROM gradle:7.3.1-jdk17
+# 빌드 스테이지
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /workspace/app
 
-# 작업 디렉토리 설정
-WORKDIR /home/gradle/project
+# Gradle 래퍼와 소스 코드 복사
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
 
-# Spring 소스 코드를 이미지에 복사
-COPY . .
+# 프로젝트 빌드
+RUN ./gradlew build
 
-# gradlew를 이용한 프로젝트 필드
-RUN ./gradlew clean build && rm -rf /home/gradle/.gradle/caches
-
-# 빌드 결과 jar 파일을 실행
-CMD ["java", "-jar", "-Dspring.profiles.active=prod", "/home/gradle/project/build/libs/bada_on-0.0.1-SNAPSHOT.jar"]
+# 실행 스테이지
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=build /workspace/app/build/libs/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
