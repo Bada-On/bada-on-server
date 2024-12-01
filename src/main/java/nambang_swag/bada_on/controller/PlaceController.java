@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import nambang_swag.bada_on.request.PlaceRegister;
@@ -16,8 +18,9 @@ import nambang_swag.bada_on.response.PlaceInfo;
 import nambang_swag.bada_on.response.PlaceList;
 import nambang_swag.bada_on.service.PlaceService;
 
+@Tag(name = "등록 장소 API")
 @RequiredArgsConstructor
-@RequestMapping("/api/places")
+@RequestMapping("/api/v1/places")
 @RestController
 public class PlaceController {
 
@@ -37,7 +40,10 @@ public class PlaceController {
 
 	@Operation(summary = "활동을 통한 등록 장소 조회", description = "활동으로 필터링된 등록 장소들을 조회합니다.")
 	@GetMapping("/find")
-	public ResponseEntity<PlaceList> getPlaceByActivity(@RequestParam String activity) {
+	public ResponseEntity<PlaceList> getPlaceByActivity(
+		@Parameter(description = "activity(스노클링 - snorkeling, 다이빙 - diving, 해수욕 - swimming, 서핑 - surfing, 카약/패들보드 - kayakingPaddleBoarding)")
+		@RequestParam
+		String activity) {
 		return ResponseEntity.ok().body(placeService.findPlaceByActivity(activity));
 	}
 }
