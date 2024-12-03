@@ -26,7 +26,7 @@ public class WeatherController {
 	private final WeatherService weatherService;
 
 	@Operation(summary = "등록장소에서의 활동 추천도 조회", description = "입력된 위치의 활동 추천도 리스트를 조회")
-	@GetMapping("/summary}")
+	@GetMapping("/summary")
 	public ResponseEntity<List<WeatherSummary>> getWeatherSummary(
 		@Parameter(description = "등록 장소 ID")
 		@RequestParam("id")
