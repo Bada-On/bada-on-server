@@ -5,13 +5,11 @@ import java.util.List;
 
 import lombok.Builder;
 import lombok.Getter;
-import nambang_swag.bada_on.constant.PrecipitationType;
 import nambang_swag.bada_on.entity.TideRecord;
 import nambang_swag.bada_on.entity.Weather;
 
 @Getter
 public class WeatherDetail {
-	private Long id;
 	private int date;
 	private int time;
 
@@ -54,7 +52,6 @@ public class WeatherDetail {
 
 	@Builder
 	public WeatherDetail(Weather weather, List<TideRecord> tideRecordList) {
-		this.id = weather.getId();
 		this.date = weather.getDate();
 		this.time = weather.getTime();
 		this.precipitationProbability = weather.getPrecipitationProbability();
