@@ -338,14 +338,24 @@ public class ExternalApiService {
 		for (TideApiResponse.TideData tideData : data) {
 			LocalDateTime tphTime = LocalDateTime.parse(tideData.getTphTime(),
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-			TideRecord tideRecord = tideRepository.findByDateAndTideObservatory(
-					Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))), observatory)
+			// TideRecord tideRecord = tideRepository.findByDateAndTideObservatory(
+			// 		Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))), observatory)
+			// 	.orElseGet(() -> TideRecord.builder()
+			// 		.tideObservatory(observatory)
+			// 		.date(Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+			// 		.build());
+
+			TideRecord tideRecord = tideRepository.findByDateAndTideObservatoryAndTidalTime(
+					Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))), observatory, tphTime)
 				.orElseGet(() -> TideRecord.builder()
 					.tideObservatory(observatory)
 					.date(Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
 					.build());
-			tideRecord.updateForecastData(observatory, tideData.getTphLevel(), tphTime, tideData.getHlCode());
-			tideRepository.save(tideRecord);
+
+			if (tideRecord.getTidalTime() != tphTime) {
+				tideRecord.updateForecastData(observatory, tideData.getTphLevel(), tphTime, tideData.getHlCode());
+				tideRepository.save(tideRecord);
+			}
 		}
 	}
 
@@ -390,5 +400,4 @@ public class ExternalApiService {
 		}
 		return closest;
 	}
-
 }
