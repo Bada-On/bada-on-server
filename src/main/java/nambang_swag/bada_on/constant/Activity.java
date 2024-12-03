@@ -11,9 +11,6 @@ public enum Activity {
 	SWIMMING("swimming"),
 	SURFING("surfing"),
 	KAYAKING_AND_PADDLE_BOARDING("kayakingPaddleBoarding");
-	// SCUBA_DIVING("scubaDiving"),
-	// PHOTO_SHOOTING("snap"),
-	// SUNRISE_SUNSET_VIEWING("sunset");
 
 	private final String value;
 

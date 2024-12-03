@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nambang_swag.bada_on.constant.Activity;
+import nambang_swag.bada_on.constant.Message;
 import nambang_swag.bada_on.constant.PrecipitationType;
 import nambang_swag.bada_on.constant.SkyCondition;
 import nambang_swag.bada_on.constant.TideObservatory;
@@ -58,12 +59,16 @@ public class WeatherService {
 		List<Weather> weathers = weatherRepository.findWeatherByPlaceIdWithDateGreaterThan(
 			place.getId(), today);
 		for (Weather weather : weathers) {
-			if (weather.isUpdated())
+			int score = calculateScore(activity, weather, tideRecords);
+			String message = Message.from(activity.getValue(), score);
+			if (weather.isUpdated()) {
 				weatherSummaryList.add(WeatherSummary.builder()
 					.date(weather.getDate())
 					.hour(weather.getTime() / 100)
-					.score(calculateScore(activity, weather, tideRecords))
+					.score(score)
+					.message(message)
 					.build());
+			}
 		}
 		return weatherSummaryList;
 	}
