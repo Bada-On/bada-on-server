@@ -1,18 +1,19 @@
-# 빌드 스테이지
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace/app
-
-# Gradle 래퍼와 소스 코드 복사
 COPY gradlew .
 COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
+COPY build.gradle settings.gradle ./
+# 의존성 먼저 다운로드하여 캐시 활용
+RUN ./gradlew dependencies
+
+# 소스 코드는 마지막에 복사
 COPY src src
+RUN ./gradlew build -x test
 
-# 프로젝트 빌드
-RUN ./gradlew build
-
-# 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
 COPY --from=build /workspace/app/build/libs/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+# 불필요한 파일 제거
+RUN rm -rf /var/cache/* && \
+    rm -rf /tmp/*
+ENTRYPOINT ["java","-jar","app.jar"]
