@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,10 +36,10 @@ public class WeatherController {
 	}
 
 	@Operation(summary = "등록장소의 세부 날씨 조회", description = "등록 장소의 세부 날씨 조회")
-	@GetMapping("/details/{id}")
+	@GetMapping("/details")
 	public ResponseEntity<List<WeatherDetail>> getWeatherDetails(
 		@Parameter(description = "등록 장소 ID")
-		@PathVariable("id")
+		@RequestParam("id")
 		Long id) {
 		return ResponseEntity.ok().body(weatherService.getWeatherDetail(id));
 	}
