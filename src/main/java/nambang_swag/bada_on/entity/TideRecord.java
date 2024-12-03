@@ -40,4 +40,12 @@ public class TideRecord {
 		this.tidalTime = tidalTime;
 		this.code = code;
 	}
+
+	public void updateForecastData(TideObservatory tideObservatory, int tidalLevel, LocalDateTime tidalTime,
+		String code) {
+		this.tideObservatory = tideObservatory;
+		this.tidalLevel = tidalLevel;
+		this.tidalTime = tidalTime;
+		this.code = code;
+	}
 }

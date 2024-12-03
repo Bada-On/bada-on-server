@@ -38,7 +38,7 @@ public class WeatherController {
 
 	@Operation(summary = "등록장소의 세부 날씨 조회", description = "등록 장소의 세부 날씨 조회")
 	@GetMapping("/details/{id}")
-	public ResponseEntity<WeatherDetail> getWeatherDetails(
+	public ResponseEntity<List<WeatherDetail>> getWeatherDetails(
 		@Parameter(description = "등록 장소 ID")
 		@PathVariable("id")
 		Long id) {

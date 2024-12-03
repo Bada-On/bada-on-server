@@ -68,21 +68,31 @@ public class WeatherService {
 		return weatherSummaryList;
 	}
 
-	public WeatherDetail getWeatherDetail(Long placeId) {
+	public List<WeatherDetail> getWeatherDetail(Long placeId) {
 		Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFound::new);
 
 		LocalDateTime now = LocalDateTime.now();
 		int date = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 		int time = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("HH00")));
-		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, time, place)
-			.orElseThrow(WeatherNotFound::new);
-		List<TideRecord> tideRecords = tideRepository.findAllByDateAndTideObservatory(date,
-			TideObservatory.findNearest(place.getLatitude(), place.getLongitude()));
 
-		return WeatherDetail.builder()
-			.weather(weather)
-			.tideRecordList(tideRecords)
-			.build();
+		List<WeatherDetail> result = new ArrayList<>();
+		List<Weather> weatherForDetails = weatherRepository.getWetherForDetails(placeId, date, time);
+		for (Weather weather : weatherForDetails) {
+			if (!weather.isUpdated()) {
+				continue;
+			}
+
+			List<TideRecord> tideRecords = tideRepository.findAllByDateAndTideObservatory(date,
+				TideObservatory.findNearest(place.getLatitude(), place.getLongitude()));
+
+			WeatherDetail weatherDetail = WeatherDetail.builder()
+				.weather(weather)
+				.tideRecordList(tideRecords)
+				.build();
+			result.add(weatherDetail);
+		}
+
+		return result;
 	}
 
 	private int calculateScore(Activity activity, Weather weather, List<TideRecord> tideRecords) {

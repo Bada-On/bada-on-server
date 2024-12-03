@@ -336,15 +336,15 @@ public class ExternalApiService {
 	private void processTidalForecastData(TideApiResponse response, TideObservatory observatory) {
 		List<TideApiResponse.TideData> data = response.getResult().getData();
 		for (TideApiResponse.TideData tideData : data) {
-			LocalDateTime TphTime = LocalDateTime.parse(tideData.getTphTime(),
+			LocalDateTime tphTime = LocalDateTime.parse(tideData.getTphTime(),
 				DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-			TideRecord tideRecord = TideRecord.builder()
-				.date(Integer.parseInt(TphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
-				.tidalTime(TphTime)
-				.tidalLevel(tideData.getTphLevel())
-				.code(tideData.getHlCode())
-				.tideObservatory(observatory)
-				.build();
+			TideRecord tideRecord = tideRepository.findByDateAndTideObservatory(
+					Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))), observatory)
+				.orElseGet(() -> TideRecord.builder()
+					.tideObservatory(observatory)
+					.date(Integer.parseInt(tphTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"))))
+					.build());
+			tideRecord.updateForecastData(observatory, tideData.getTphLevel(), tphTime, tideData.getHlCode());
 			tideRepository.save(tideRecord);
 		}
 	}
