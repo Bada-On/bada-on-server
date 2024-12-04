@@ -23,7 +23,6 @@ public class DataLoader implements CommandLineRunner {
 			"kayakingPaddleBoarding");
 
 		List<PlaceRegister> places = new ArrayList<>();
-		places.add(new PlaceRegister("곽지과물 해수욕장", 33.450, 126.304, commonActivities));
 		places.add(new PlaceRegister("협재 해수욕장", 33.394, 126.239, commonActivities));
 		places.add(new PlaceRegister("금능으뜸원 해수욕장", 33.389, 126.235, commonActivities));
 		places.add(new PlaceRegister("이호테우 해수욕장", 33.497, 126.452, commonActivities));
