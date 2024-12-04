@@ -23,4 +23,11 @@ public class PlaceRegister {
 	private Double longitude;
 
 	private List<String> activities;
+
+	public PlaceRegister(String name, Double latitude, Double longitude, List<String> activities) {
+		this.name = name;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.activities = activities;
+	}
 }
