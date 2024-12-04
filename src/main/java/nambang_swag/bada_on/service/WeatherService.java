@@ -81,9 +81,9 @@ public class WeatherService {
 		int time = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("HH00")));
 
 		List<WeatherDetail> result = new ArrayList<>();
-		List<Weather> weatherForDetails = weatherRepository.getWetherForDetails(placeId, date, time);
+		List<Weather> weatherForDetails = weatherRepository.findWeatherByPlaceIdWithDateGreaterThan(placeId, date);
 		for (Weather weather : weatherForDetails) {
-			if (!weather.isUpdated()) {
+			if (!weather.isUpdated() || (weather.getDate() <= date && weather.getTime() < time)) {
 				continue;
 			}
 
