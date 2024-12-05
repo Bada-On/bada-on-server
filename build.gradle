@@ -48,6 +48,7 @@ tasks.register('copySecret', Copy) {
     description = 'Copy submodules to project'
     from('bada-on-config') {
         include('*.yml')
+        include('*.json')
     }
     into('src/main/resources')
 }
