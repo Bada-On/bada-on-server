@@ -38,7 +38,7 @@ public class AlarmService {
 					.build();
 				FirebaseMessaging.getInstance().send(message);
 			} catch (Exception e) {
-				log.info("messageSendError: " + e.getMessage());
+				log.info("messageSendError: {}", e.getMessage());
 			}
 		}
 	}
