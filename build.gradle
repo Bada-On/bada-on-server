@@ -36,6 +36,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.1'
     implementation 'com.fasterxml.woodstox:woodstox-core:6.5.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
 }
 
 tasks.named('test') {
