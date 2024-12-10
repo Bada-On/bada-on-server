@@ -1,6 +1,7 @@
 package nambang_swag.bada_on.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,14 @@ import nambang_swag.bada_on.request.RegisterFcmToken;
 public class AlarmService {
 
 	private final FireBaseDeviceRepository deviceRepository;
+	private final FireBaseDeviceRepository fireBaseDeviceRepository;
 
 	public void registerDevice(RegisterFcmToken request) {
+		Optional<FireBaseDevice> device = fireBaseDeviceRepository.findByToken(request.getToken());
+		if (device.isPresent()) {
+			return;
+		}
+
 		FireBaseDevice fireBaseDevice = FireBaseDevice.builder()
 			.token(request.getToken())
 			.device(request.getDevice())
@@ -35,6 +42,7 @@ public class AlarmService {
 				Message message = Message.builder()
 					.putData("title", title)
 					.putData("content", content)
+					.setToken(fireBaseDevice.getToken())
 					.build();
 				FirebaseMessaging.getInstance().send(message);
 			} catch (Exception e) {
