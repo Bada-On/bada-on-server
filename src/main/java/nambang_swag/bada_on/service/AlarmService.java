@@ -44,7 +44,8 @@ public class AlarmService {
 					.putData("content", content)
 					.setToken(fireBaseDevice.getToken())
 					.build();
-				FirebaseMessaging.getInstance().send(message);
+				String response = FirebaseMessaging.getInstance().send(message);
+				log.info("Sent success: {}", response);
 			} catch (Exception e) {
 				log.info("messageSendError: {}", e.getMessage());
 			}
