@@ -43,9 +43,5 @@ public class DataLoader implements CommandLineRunner {
 		for (PlaceRegister place : places) {
 			placeService.register(place);
 		}
-
-		externalApiService.getShortTermForecast();
-		externalApiService.getTidalForecast();
-		externalApiService.getOceanTemperature();
 	}
 }
