@@ -122,7 +122,7 @@ public class Weather {
 				case "WAV" -> waveHeight = parseFloat(value);
 				case "PCP", "RN1" -> hourlyPrecipitation = parseAccumulation(value, "강수없음");
 				case "REH" -> humidity = parseInt(value);
-				case "SNO" -> hourlySnowAccumulation = parseAccumulation(value, "적설없음");
+				case "SNO" -> hourlySnowAccumulation = parseHourlySnowAccumulation(value, "적설없음");
 			}
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Failed to parse value: " + value + " for category: " + category, e);
