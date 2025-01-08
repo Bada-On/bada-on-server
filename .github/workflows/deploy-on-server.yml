@@ -73,5 +73,5 @@ jobs:
             docker rm develop-server
             docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
-            docker run --name develop-server -d -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
+            docker run --name develop-server -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=dev ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
             docker image prune -f
