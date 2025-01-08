@@ -123,6 +123,7 @@ public class Weather {
 				case "PCP", "RN1" -> hourlyPrecipitation = parseAccumulation(value, "강수없음");
 				case "REH" -> humidity = parseInt(value);
 				case "SNO" -> hourlySnowAccumulation = parseAccumulation(value, "적설없음");
+
 			}
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Failed to parse value: " + value + " for category: " + category, e);
@@ -141,6 +142,12 @@ public class Weather {
 		if (value.equals(noneString)) {
 			return NO_DATA;
 		}
+
+		if (value.endsWith("cm미만")) {
+			String numericPart = value.substring(0, value.indexOf("cm"));
+			return Float.parseFloat(numericPart) / 10; // Convert cm to mm
+		}
+
 		return parseFloat(value.split("mm")[0]);
 	}
 }
