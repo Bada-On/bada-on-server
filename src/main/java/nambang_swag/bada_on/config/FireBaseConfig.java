@@ -1,6 +1,8 @@
 package nambang_swag.bada_on.config;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +20,24 @@ public class FireBaseConfig {
 	@Bean
 	public FirebaseApp initializeFirebase() throws IOException {
 		String firebaseKey = System.getenv("FIREBASE_KEY");
-		if (firebaseKey == null || firebaseKey.isEmpty()) {
-			throw new IllegalStateException("FIREBASE_KEY 환경 변수가 설정되지 않았습니다.");
-		}
+		File keyFile = new File("/app/config/firebase-key.json");
 
-		InputStream serviceAccount = new ByteArrayInputStream(firebaseKey.getBytes(StandardCharsets.UTF_8));
-		FirebaseOptions options = FirebaseOptions.builder()
-			.setCredentials(GoogleCredentials.fromStream(serviceAccount))
-			.build();
-		return FirebaseApp.initializeApp(options);
+		if (firebaseKey != null && !firebaseKey.isEmpty()) {
+			// 환경 변수에서 키를 읽는 경우
+			InputStream serviceAccount = new ByteArrayInputStream(firebaseKey.getBytes(StandardCharsets.UTF_8));
+			FirebaseOptions options = FirebaseOptions.builder()
+				.setCredentials(GoogleCredentials.fromStream(serviceAccount))
+				.build();
+			return FirebaseApp.initializeApp(options);
+		} else if (keyFile.exists()) {
+			// 파일에서 키를 읽는 경우
+			FileInputStream serviceAccount = new FileInputStream(keyFile);
+			FirebaseOptions options = FirebaseOptions.builder()
+				.setCredentials(GoogleCredentials.fromStream(serviceAccount))
+				.build();
+			return FirebaseApp.initializeApp(options);
+		} else {
+			throw new IllegalStateException("Firebase 인증 정보를 찾을 수 없습니다.");
+		}
 	}
 }
