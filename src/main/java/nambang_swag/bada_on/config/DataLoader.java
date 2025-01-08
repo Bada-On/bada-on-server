@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import nambang_swag.bada_on.request.PlaceRegister;
+import nambang_swag.bada_on.service.ExternalApiService;
 import nambang_swag.bada_on.service.PlaceService;
 
 @RequiredArgsConstructor
@@ -16,9 +17,10 @@ import nambang_swag.bada_on.service.PlaceService;
 public class DataLoader implements CommandLineRunner {
 
 	private final PlaceService placeService;
+	private final ExternalApiService externalApiService;
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		List<String> commonActivities = Arrays.asList("diving", "snorkeling", "swimming", "surfing",
 			"kayakingPaddleBoarding");
 
@@ -41,5 +43,9 @@ public class DataLoader implements CommandLineRunner {
 		for (PlaceRegister place : places) {
 			placeService.register(place);
 		}
+
+		externalApiService.getShortTermForecast();
+		externalApiService.getTidalForecast();
+		externalApiService.getOceanTemperature();
 	}
 }
