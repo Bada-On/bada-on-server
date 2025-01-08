@@ -61,19 +61,21 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: 개발 서버 배포
-        env:
-          FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEV_AWS_EC2_PUBLIC_IP }}
           username: ec2-user
           key: ${{ secrets.AWS_EC2_PEM_KEY }}
           script: |
-            cd /home/ec2-user/potatoes/dev
+            cd /home/ec2-user/bada-on/dev
+            echo '${{ secrets.FIREBASE_KEY }}' > firebase-service-account.json
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker stop develop-server
             docker rm develop-server
             docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
-            docker run --name develop-server -d -p 80:8080 -e SPRING_PROFILES_ACTIVE=dev -v "$(pwd)/firebase-key.json:/app/config/firebase-key.json" ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
+            docker run --name develop-server -d -p 80:8080 \
+              -e SPRING_PROFILES_ACTIVE=dev \
+              -v $(pwd)/firebase-service-account.json:/app/firebase-service-account.json \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_DEV_REPO }}:latest
             docker image prune -f
