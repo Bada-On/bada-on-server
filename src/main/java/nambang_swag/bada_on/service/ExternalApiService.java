@@ -67,36 +67,43 @@ public class ExternalApiService {
 	// 초단기 예보 가져오기 - 매 시간 30분에 발표, 45분에 api반영
 	@Transactional
 	public void getUltraShortTermForecast() {
+		log.info("초단기 예보 정보 수집 시작");
 		List<Place> places = placeRepository.findAll();
 		for (Place place : places) {
 			WeatherForeCastApiResponse response = callUltraShortTermForecastApi(place);
 			processWeatherForecastData(response, place);
 		}
+		log.info("초단기 예보 정보 수집 종료");
 	}
 
 	// 단기 예보 가져오기 - 매 시간 10분에 api반영
 	@Transactional
 	public void getShortTermForecast() {
+		log.info("단기 예보 정보 수집 시작");
 		List<Place> places = placeRepository.findAll();
 		for (Place place : places) {
 			WeatherForeCastApiResponse response = callShortTermForecastApi(place);
 			processWeatherForecastData(response, place);
 		}
+		log.info("단기 예보 정보 수집 종료");
 	}
 
 	// 초단기 실황 가져오기
 	@Transactional
 	public void getUltraShortTermNowCast() {
+		log.info("초단기 실황 정보 수집 시작");
 		List<Place> places = placeRepository.findAll();
 		for (Place place : places) {
 			WeatherNowCastApiResponse response = callUltraShortTermNowCastApi(place);
 			processWeatherNowCastData(response, place);
 		}
+		log.info("초단기 실황 정보 수집 종료");
 	}
 
 	// 조석예보 가져오기
 	@Transactional
 	public void getTidalForecast() {
+		log.info("조석예보 정보 수집 시작");
 		LocalDateTime now = LocalDateTime.now();
 		for (int i = 0; i < 3; i++) {
 			LocalDateTime time = now.plusDays(i);
@@ -109,11 +116,13 @@ public class ExternalApiService {
 				}
 			}
 		}
+		log.info("조석예보 정보 수집 종료");
 	}
 
 	// 일출일몰 예보 가져오기
 	@Transactional
 	public void getSunRiseSetData() {
+		log.info("일출 일몰 정보 수집 시작");
 		List<Place> places = placeRepository.findAll();
 		LocalDateTime now = LocalDateTime.now();
 		String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -121,16 +130,19 @@ public class ExternalApiService {
 			SunRiseSetForeCastApiResponse response = callSunRiseSetForecastApi(place, baseDate);
 			processSunRiseSetData(response, place, baseDate);
 		}
+		log.info("일출 일몰 정보 수집 종료");
 	}
 
 	// 수온 정보 가져오기
 	@Transactional
 	public void getOceanTemperature() {
+		log.info("수온 정보 수집 시작");
 		List<Place> places = placeRepository.findAll();
 		for (Place place : places) {
 			WaterTemperatureForecastApiResponse response = callWaterTemperatureForecastApi(place);
 			processWaterTemperatureData(response, place);
 		}
+		log.info("수온 정보 수집 종료");
 	}
 
 	@Scheduled(cron = "0 11 * * * *")
