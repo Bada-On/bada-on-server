@@ -6,6 +6,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,10 @@ import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.entity.TideRecord;
 import nambang_swag.bada_on.entity.Weather;
 import nambang_swag.bada_on.exception.PlaceNotFound;
-import nambang_swag.bada_on.exception.WeatherNotFound;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.repository.TideRepository;
 import nambang_swag.bada_on.repository.WeatherRepository;
+import nambang_swag.bada_on.response.AvailableTime;
 import nambang_swag.bada_on.response.WeatherDetail;
 import nambang_swag.bada_on.response.WeatherSummary;
 
@@ -585,5 +587,19 @@ public class WeatherService {
 		return 0; // 범위 밖의 시간인 경우
 	}
 
+	public List<AvailableTime> getAvailableTime(Integer date, Integer hour) {
+		return weatherRepository.getWeatherIsUpdated(date, hour * 100).stream()
+			.collect(Collectors.groupingBy(
+				Weather::getDate,
+				Collectors.mapping(weather -> weather.getTime() / 100, Collectors.toSet()) // Remove duplicates
+			))
+			.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(entry -> new AvailableTime(
+				entry.getKey(),
+				entry.getValue().stream().sorted().toList()
+			))
+			.toList();
+	}
 }
 

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import nambang_swag.bada_on.response.AvailableTime;
 import nambang_swag.bada_on.response.WeatherDetail;
 import nambang_swag.bada_on.response.WeatherSummary;
 import nambang_swag.bada_on.service.WeatherService;
@@ -42,5 +43,14 @@ public class WeatherController {
 		@RequestParam("id")
 		Long id) {
 		return ResponseEntity.ok().body(weatherService.getWeatherDetail(id));
+	}
+
+	@Operation(summary = "조회 가능한 시간 조회", description = "날씨 조회가 가능한 시간 조회")
+	@GetMapping("/available")
+	public ResponseEntity<List<AvailableTime>> getAvailableTime(
+		@RequestParam("date") Integer date,
+		@RequestParam("hour") Integer hour
+	) {
+		return ResponseEntity.ok(weatherService.getAvailableTime(date, hour));
 	}
 }
