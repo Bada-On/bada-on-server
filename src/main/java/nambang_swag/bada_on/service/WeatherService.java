@@ -29,7 +29,9 @@ import nambang_swag.bada_on.exception.WeatherNotFound;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.repository.TideRepository;
 import nambang_swag.bada_on.repository.WeatherRepository;
+import nambang_swag.bada_on.response.ActivityScore;
 import nambang_swag.bada_on.response.AvailableTime;
+import nambang_swag.bada_on.response.TideInfo;
 import nambang_swag.bada_on.response.WeatherDetail;
 import nambang_swag.bada_on.response.WeatherSummary;
 
@@ -61,31 +63,28 @@ public class WeatherService {
 		);
 	}
 
-	public List<WeatherDetail> getWeatherDetail(Long placeId) {
+	public WeatherDetail getWeatherDetail(Long placeId, int date, int hour) {
 		Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFound::new);
+		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, hour * 100, place)
+			.orElseThrow(WeatherNotFound::new);
+
+		List<Integer> relevantDates = calculateRelevantDates();
+		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
+		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(relevantDates, tideObservatory);
 
 		LocalDateTime now = LocalDateTime.now();
-		int date = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		int time = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("HH00")));
+		TideInfo closestPreviousTideRecord = findClosestPreviousTideRecord(tideRecords, now);
+		TideInfo closestNextTideRecord = findClosestNextTideRecord(tideRecords, now);
 
-		List<WeatherDetail> result = new ArrayList<>();
-		List<Weather> weatherForDetails = weatherRepository.findWeatherByPlaceIdWithDateGreaterThan(placeId, date);
-		for (Weather weather : weatherForDetails) {
-			if (!weather.isUpdated() || (weather.getDate() <= date && weather.getTime() < time)) {
-				continue;
-			}
-
-			List<TideRecord> tideRecords = tideRepository.findAllByDateAndTideObservatory(date,
-				TideObservatory.findNearest(place.getLatitude(), place.getLongitude()));
-
-			WeatherDetail weatherDetail = WeatherDetail.builder()
-				.weather(weather)
-				.tideRecordList(tideRecords)
-				.build();
-			result.add(weatherDetail);
-		}
-
-		return result;
+		getAllScores(weather, tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords);
+		return WeatherDetail.of(
+			weather,
+			new ArrayList<>(),
+			List.of(closestPreviousTideRecord, closestNextTideRecord),
+			getAllScores(weather, tideRecords),
+			tidePercentage
+		);
 	}
 
 	private Activity getRecommendActivity(Weather weather, List<TideRecord> tideRecords) {
@@ -589,6 +588,32 @@ public class WeatherService {
 			Integer.parseInt(now.format(formatter)),             // 오늘
 			Integer.parseInt(now.plusDays(1).format(formatter))  // 내일
 		);
+	}
+
+	private List<ActivityScore> getAllScores(Weather weather, List<TideRecord> tideRecords) {
+		List<ActivityScore> scores = new ArrayList<>();
+		scores.add(new ActivityScore(SNORKELING.getValue(), calculateSnorkelingScore(weather, tideRecords)));
+		scores.add(new ActivityScore(DIVING.getValue(), calculateDivingScore(weather, tideRecords)));
+		scores.add(new ActivityScore(SWIMMING.getValue(), calculateSwimmingScore(weather, tideRecords)));
+		scores.add(new ActivityScore(KAYAKING_AND_PADDLE_BOARDING.getValue(),
+			calculateKayakingPaddleBoardingScore(weather, tideRecords)));
+		return scores;
+	}
+
+	private TideInfo findClosestPreviousTideRecord(List<TideRecord> tideRecords, LocalDateTime now) {
+		return tideRecords.stream()
+			.filter(record -> record.getTidalTime().isBefore(now))
+			.max(Comparator.comparing(TideRecord::getTidalTime))
+			.map(record -> new TideInfo(record.getTidalLevel(), record.getTidalTime(), record.getCode()))
+			.orElse(null); // Optional에서 직접 null 반환
+	}
+
+	private TideInfo findClosestNextTideRecord(List<TideRecord> tideRecords, LocalDateTime now) {
+		return tideRecords.stream()
+			.filter(record -> record.getTidalTime().isAfter(now))
+			.min(Comparator.comparing(TideRecord::getTidalTime))
+			.map(record -> new TideInfo(record.getTidalLevel(), record.getTidalTime(), record.getCode()))
+			.orElse(null); // Optional에서 직접 null 반환
 	}
 }
 

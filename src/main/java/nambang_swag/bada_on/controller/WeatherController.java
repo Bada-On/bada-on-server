@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import nambang_swag.bada_on.response.AvailableTime;
@@ -24,7 +23,7 @@ import nambang_swag.bada_on.service.WeatherService;
 public class WeatherController {
 
 	private final WeatherService weatherService;
-	
+
 	@Operation(summary = "등록장소에서의 활동 추천도 조회", description = "입력된 위치의 활동 추천도 리스트를 조회")
 	@GetMapping("/summary")
 	public ResponseEntity<WeatherSummary> getWeatherSummary(
@@ -37,11 +36,12 @@ public class WeatherController {
 
 	@Operation(summary = "등록장소의 세부 날씨 조회", description = "등록 장소의 세부 날씨 조회")
 	@GetMapping("/details")
-	public ResponseEntity<List<WeatherDetail>> getWeatherDetails(
-		@Parameter(description = "등록 장소 ID")
-		@RequestParam("id")
-		Long id) {
-		return ResponseEntity.ok().body(weatherService.getWeatherDetail(id));
+	public ResponseEntity<WeatherDetail> getWeatherDetails(
+		@RequestParam("id") Long id,
+		@RequestParam("date") int date,
+		@RequestParam("hour") int hour
+	) {
+		return ResponseEntity.ok().body(weatherService.getWeatherDetail(id, date, hour));
 	}
 
 	@Operation(summary = "조회 가능한 시간 조회", description = "날씨 조회가 가능한 시간 조회")

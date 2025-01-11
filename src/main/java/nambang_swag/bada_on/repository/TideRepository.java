@@ -21,5 +21,4 @@ public interface TideRepository extends JpaRepository<TideRecord, Long> {
 	@Query("SELECT t FROM TideRecord t WHERE t.date IN :dates AND t.tideObservatory = :tideObservatory")
 	List<TideRecord> findAllByDatesAndTideObservatory(@Param("dates") List<Integer> dates,
 		@Param("tideObservatory") TideObservatory tideObservatory);
-
 }

@@ -20,7 +20,7 @@ public record WeatherSummary(
 		float tideHeight) {
 		return new WeatherSummary(
 			weather.getDate(),
-			weather.getTime(),
+			weather.getTime() / 100,
 			warning,
 			recommendActivity,
 			getSkyCondition(weather),
