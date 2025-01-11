@@ -1,10 +1,13 @@
 package nambang_swag.bada_on.service;
 
+import static nambang_swag.bada_on.constant.Activity.*;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nambang_swag.bada_on.constant.Activity;
-import nambang_swag.bada_on.constant.Message;
 import nambang_swag.bada_on.constant.PrecipitationType;
 import nambang_swag.bada_on.constant.SkyCondition;
 import nambang_swag.bada_on.constant.TideObservatory;
@@ -23,6 +25,7 @@ import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.entity.TideRecord;
 import nambang_swag.bada_on.entity.Weather;
 import nambang_swag.bada_on.exception.PlaceNotFound;
+import nambang_swag.bada_on.exception.WeatherNotFound;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.repository.TideRepository;
 import nambang_swag.bada_on.repository.WeatherRepository;
@@ -40,39 +43,22 @@ public class WeatherService {
 	private final TideRepository tideRepository;
 	private final PlaceRepository placeRepository;
 
-	public List<WeatherSummary> getWeatherSummary(Long id, String stringActivity) {
+	public WeatherSummary getWeatherSummary(Long id, int date, int hour) {
 		Place place = placeRepository.findById(id).orElseThrow(PlaceNotFound::new);
-		Activity activity = Activity.from(stringActivity);
-		LocalDateTime now = LocalDateTime.now();
-		int today = Integer.parseInt(now.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		int yesterday = Integer.parseInt(now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-		int tomorrow = Integer.parseInt(now.plusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, hour * 100, place)
+			.orElseThrow(WeatherNotFound::new);
 
+		List<Integer> relevantDates = calculateRelevantDates();
 		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
-		List<TideRecord> todayTide = tideRepository.findAllByDateAndTideObservatory(today, tideObservatory);
-		List<TideRecord> yesterdayTide = tideRepository.findAllByDateAndTideObservatory(yesterday, tideObservatory);
-		List<TideRecord> tomorrowTide = tideRepository.findAllByDateAndTideObservatory(tomorrow, tideObservatory);
-		List<TideRecord> tideRecords = new ArrayList<>();
-		tideRecords.addAll(yesterdayTide);
-		tideRecords.addAll(todayTide);
-		tideRecords.addAll(tomorrowTide);
+		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(relevantDates, tideObservatory);
 
-		List<WeatherSummary> weatherSummaryList = new ArrayList<>();
-		List<Weather> weathers = weatherRepository.findWeatherByPlaceIdWithDateGreaterThan(
-			place.getId(), today);
-		for (Weather weather : weathers) {
-			int score = calculateScore(activity, weather, tideRecords);
-			String message = Message.from(activity.getValue(), score);
-			if (weather.isUpdated()) {
-				weatherSummaryList.add(WeatherSummary.builder()
-					.date(weather.getDate())
-					.hour(weather.getTime() / 100)
-					.score(score)
-					.message(message)
-					.build());
-			}
-		}
-		return weatherSummaryList;
+		int tidePercentage = calculateTidePercentage(tideRecords);
+		return WeatherSummary.of(
+			weather,
+			new ArrayList<>(),
+			getRecommendActivity(weather, tideRecords),
+			tidePercentage
+		);
 	}
 
 	public List<WeatherDetail> getWeatherDetail(Long placeId) {
@@ -102,26 +88,19 @@ public class WeatherService {
 		return result;
 	}
 
-	private int calculateScore(Activity activity, Weather weather, List<TideRecord> tideRecords) {
-		switch (activity) {
-			case SNORKELING -> {
-				return calculateSnorkelingScore(weather, tideRecords);
-			}
-			case SURFING -> {
-				return calculateSurfingScore(weather, tideRecords);
-			}
-			case DIVING -> {
-				return calculateDivingScore(weather, tideRecords);
-			}
-			case SWIMMING -> {
-				return calculateSwimmingScore(weather, tideRecords);
-			}
-			case KAYAKING_AND_PADDLE_BOARDING -> {
-				return calculateKayakingPaddleBoardingScore(weather, tideRecords);
-			}
-		}
+	private Activity getRecommendActivity(Weather weather, List<TideRecord> tideRecords) {
+		Map<Activity, Integer> activityScores = new HashMap<>();
 
-		return 0;
+		activityScores.put(SNORKELING, calculateSnorkelingScore(weather, tideRecords));
+		activityScores.put(SWIMMING, calculateSwimmingScore(weather, tideRecords));
+		activityScores.put(DIVING, calculateDivingScore(weather, tideRecords));
+		activityScores.put(KAYAKING_AND_PADDLE_BOARDING, calculateKayakingPaddleBoardingScore(weather, tideRecords));
+		activityScores.put(SURFING, calculateSurfingScore(weather, tideRecords));
+
+		return activityScores.entrySet().stream()
+			.max(Map.Entry.comparingByValue())
+			.orElseThrow(() -> new IllegalStateException("No activity scores available"))
+			.getKey();
 	}
 
 	// Calculate Point
@@ -600,6 +579,16 @@ public class WeatherService {
 				entry.getValue().stream().sorted().toList()
 			))
 			.toList();
+	}
+
+	private List<Integer> calculateRelevantDates() {
+		LocalDateTime now = LocalDateTime.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		return List.of(
+			Integer.parseInt(now.minusDays(1).format(formatter)), // 어제
+			Integer.parseInt(now.format(formatter)),             // 오늘
+			Integer.parseInt(now.plusDays(1).format(formatter))  // 내일
+		);
 	}
 }
 

@@ -1,20 +1,55 @@
 package nambang_swag.bada_on.response;
 
-import lombok.Builder;
-import lombok.Getter;
+import java.util.List;
 
-@Getter
-public class WeatherSummary {
-	private int date;
-	private int hour;
-	private int score;
-	private String message;
+import nambang_swag.bada_on.constant.Activity;
+import nambang_swag.bada_on.entity.Weather;
 
-	@Builder
-	public WeatherSummary(int date, int hour, int score, String message) {
-		this.date = date;
-		this.hour = hour;
-		this.score = score;
-		this.message = message;
+public record WeatherSummary(
+	int date,
+	int hour,
+	List<String> warning,
+	Activity recommendActivity,
+	String skyCondition,
+	float temperature,
+	String wind,
+	float tideHeight,
+	float waveHeight
+) {
+	public static WeatherSummary of(Weather weather, List<String> warning, Activity recommendActivity,
+		float tideHeight) {
+		return new WeatherSummary(
+			weather.getDate(),
+			weather.getTime(),
+			warning,
+			recommendActivity,
+			getSkyCondition(weather),
+			weather.getHourlyTemperature(),
+			getWindString(weather.getWindSpeed()),
+			tideHeight,
+			weather.getWaveHeight()
+		);
+	}
+
+	private static String getSkyCondition(Weather weather) {
+		if (weather.getHourlySnowAccumulation() > 0) {
+			return "눈";
+		} else if (weather.getHourlyPrecipitation() > 0) {
+			return "비";
+		} else {
+			return weather.getSkyCondition().getDescription();
+		}
+	}
+
+	private static String getWindString(float windSpeed) {
+		if (windSpeed >= 0f && windSpeed < 2f) {
+			return "매우 약함";
+		} else if (windSpeed >= 2f && windSpeed < 4f) {
+			return "약함";
+		} else if (windSpeed >= 4f && windSpeed < 7f) {
+			return "적당";
+		} else {
+			return "강함";
+		}
 	}
 }

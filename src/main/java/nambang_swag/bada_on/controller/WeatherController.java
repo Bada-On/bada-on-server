@@ -24,16 +24,15 @@ import nambang_swag.bada_on.service.WeatherService;
 public class WeatherController {
 
 	private final WeatherService weatherService;
-
+	
 	@Operation(summary = "등록장소에서의 활동 추천도 조회", description = "입력된 위치의 활동 추천도 리스트를 조회")
 	@GetMapping("/summary")
-	public ResponseEntity<List<WeatherSummary>> getWeatherSummary(
-		@Parameter(description = "등록 장소 ID")
-		@RequestParam("id")
-		Long id,
-		@Parameter(description = "activity(스노클링 - snorkeling, 다이빙 - diving, 해수욕 - swimming, 서핑 - surfing, 카약/패들보드 - kayakingPaddleBoarding)")
-		@RequestParam("category") String category) {
-		return ResponseEntity.ok().body(weatherService.getWeatherSummary(id, category));
+	public ResponseEntity<WeatherSummary> getWeatherSummary(
+		@RequestParam("id") Long id,
+		@RequestParam("date") int date,
+		@RequestParam("hour") int hour
+	) {
+		return ResponseEntity.ok().body(weatherService.getWeatherSummary(id, date, hour));
 	}
 
 	@Operation(summary = "등록장소의 세부 날씨 조회", description = "등록 장소의 세부 날씨 조회")
