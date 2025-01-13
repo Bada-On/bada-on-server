@@ -594,6 +594,7 @@ public class WeatherService {
 		List<ActivityScore> scores = new ArrayList<>();
 		scores.add(new ActivityScore(SNORKELING.getValue(), calculateSnorkelingScore(weather, tideRecords)));
 		scores.add(new ActivityScore(DIVING.getValue(), calculateDivingScore(weather, tideRecords)));
+		scores.add(new ActivityScore(SURFING.getValue(), calculateSurfingScore(weather, tideRecords)));
 		scores.add(new ActivityScore(SWIMMING.getValue(), calculateSwimmingScore(weather, tideRecords)));
 		scores.add(new ActivityScore(KAYAKING_AND_PADDLE_BOARDING.getValue(),
 			calculateKayakingPaddleBoardingScore(weather, tideRecords)));
