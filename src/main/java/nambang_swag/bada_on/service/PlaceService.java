@@ -11,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nambang_swag.bada_on.constant.Activity;
 import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.request.PlaceRegister;
 import nambang_swag.bada_on.response.PlaceInfo;
 import nambang_swag.bada_on.response.PlaceList;
 import nambang_swag.bada_on.util.CoordinateConverter;
-import nambang_swag.bada_on.constant.Activity;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,24 +30,22 @@ public class PlaceService {
 
 	@Transactional
 	public PlaceInfo register(PlaceRegister request) {
-		int[] grid = converter.convertToGrid(request.getLatitude(), request.getLongitude());
+		int[] grid = converter.convertToGrid(request.latitude(), request.longitude());
 		Place place = Place.builder()
-			.name(request.getName())
-			.longitude(request.getLongitude())
-			.latitude(request.getLatitude())
+			.name(request.name())
+			.longitude(request.longitude())
+			.latitude(request.latitude())
+			.address(request.address())
 			.nx(grid[0])
 			.ny(grid[1])
 			.build();
 		placeRepository.save(place);
 
-		request.getActivities().stream()
+		request.activities().stream()
 			.map(Activity::from).filter(Objects::nonNull)
 			.forEach(activity -> place.updateActivityStatus(activity, true));
 
-		return PlaceInfo.builder()
-			.place(place)
-			.activities(place.getStringActivities())
-			.build();
+		return PlaceInfo.from(place);
 	}
 
 	public PlaceList getListOfPlaces() {
@@ -55,37 +53,24 @@ public class PlaceService {
 
 		List<PlaceInfo> placeInfos = new ArrayList<>();
 		for (Place place : places) {
-			PlaceInfo placeInfo = PlaceInfo.builder()
-				.place(place)
-				.activities(place.getStringActivities())
-				.build();
+			PlaceInfo placeInfo = PlaceInfo.from(place);
 			placeInfos.add(placeInfo);
 		}
 
-		return PlaceList.builder()
-			.total(places.size())
-			.places(placeInfos)
-			.build();
+		return PlaceList.of(places.size(), placeInfos);
 	}
 
 	public PlaceList findPlaceByActivity(String activityName) {
 		Activity activity = from(activityName);
 		if (activity == null) {
-			// 빈 배열 값 반환
 			return null;
 		}
 		List<Place> placeByActivity = getPlaceByActivity(activity);
 		List<PlaceInfo> placeInfoList = placeByActivity.stream()
-			.map(place -> PlaceInfo.builder()
-				.place(place)
-				.activities(place.getStringActivities())
-				.build())
+			.map(PlaceInfo::from)
 			.toList();
 
-		return PlaceList.builder()
-			.total(placeInfoList.size())
-			.places(placeInfoList)
-			.build();
+		return PlaceList.of(placeInfoList.size(), placeInfoList);
 	}
 
 	public PlaceList findNearestPlace(double lon, double lat) {
@@ -98,15 +83,10 @@ public class PlaceService {
 		});
 
 		List<PlaceInfo> placeInfoList = placeList.stream()
-			.map(place -> PlaceInfo.builder()
-				.place(place)
-				.activities(place.getStringActivities())
-				.build())
+			.map(PlaceInfo::from)
 			.toList();
 
-		return PlaceList.builder()
-			.places(placeInfoList)
-			.build();
+		return PlaceList.of(placeInfoList.size(), placeInfoList);
 	}
 
 	private List<Place> getPlaceByActivity(Activity activity) {

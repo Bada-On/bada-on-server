@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum SkyCondition {
 	NONE(0, "없음"),
 	SUNNY(1, "맑음"),
-	CLOUDS(3, "구름많음"),
+	CLOUDS(3, "흐림"), // 구름 많음
 	CLOUDY(4, "흐림");
 
 	private final int code;

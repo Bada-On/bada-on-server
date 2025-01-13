@@ -9,7 +9,7 @@ public record WeatherSummary(
 	int date,
 	int hour,
 	List<String> warning,
-	Activity recommendActivity,
+	String recommendActivity,
 	String skyCondition,
 	float temperature,
 	String wind,
@@ -22,7 +22,7 @@ public record WeatherSummary(
 			weather.getDate(),
 			weather.getTime() / 100,
 			warning,
-			recommendActivity,
+			recommendActivity.getValue(),
 			getSkyCondition(weather),
 			weather.getHourlyTemperature(),
 			getWindString(weather.getWindSpeed()),
@@ -48,8 +48,10 @@ public record WeatherSummary(
 			return "약함";
 		} else if (windSpeed >= 4f && windSpeed < 7f) {
 			return "적당";
-		} else {
+		} else if (windSpeed >= 7f && windSpeed < 10f) {
 			return "강함";
+		} else {
+			return "매우 강함";
 		}
 	}
 }

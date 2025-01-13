@@ -23,14 +23,14 @@ public class AlarmService {
 	private final FireBaseDeviceRepository fireBaseDeviceRepository;
 
 	public void registerDevice(RegisterFcmToken request) {
-		Optional<FireBaseDevice> device = fireBaseDeviceRepository.findByToken(request.getToken());
+		Optional<FireBaseDevice> device = fireBaseDeviceRepository.findByToken(request.token());
 		if (device.isPresent()) {
 			return;
 		}
 
 		FireBaseDevice fireBaseDevice = FireBaseDevice.builder()
-			.token(request.getToken())
-			.device(request.getDevice())
+			.token(request.token())
+			.device(request.device())
 			.build();
 		deviceRepository.save(fireBaseDevice);
 	}

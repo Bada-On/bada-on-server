@@ -35,6 +35,9 @@ public class Place {
 	private Double longitude;
 
 	@Column(nullable = false)
+	private String address;
+
+	@Column(nullable = false)
 	private int nx;
 
 	@Column(nullable = false)
@@ -47,10 +50,11 @@ public class Place {
 	private boolean canKayakingPaddleBoarding;
 
 	@Builder
-	public Place(String name, Double latitude, Double longitude, int nx, int ny) {
+	public Place(String name, Double latitude, Double longitude, String address, int nx, int ny) {
 		this.name = name;
 		this.latitude = latitude;
 		this.longitude = longitude;
+		this.address = address;
 		this.nx = nx;
 		this.ny = ny;
 	}
