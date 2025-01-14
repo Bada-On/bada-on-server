@@ -50,9 +50,12 @@ public class WeatherService {
 		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, hour * 100, place)
 			.orElseThrow(WeatherNotFound::new);
 
-		List<Integer> relevantDates = calculateRelevantDates();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDateTime requestTime = toLocalDateTime(date, hour);
+		int first = Integer.parseInt(requestTime.minusDays(1).format(formatter));
+		int last = Integer.parseInt(requestTime.plusDays(1).format(formatter));
 		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
-		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(relevantDates, tideObservatory);
+		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(first, last, tideObservatory);
 
 		int tidePercentage = calculateTidePercentage(tideRecords);
 		return WeatherSummary.of(
@@ -67,21 +70,31 @@ public class WeatherService {
 		Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFound::new);
 		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, hour * 100, place)
 			.orElseThrow(WeatherNotFound::new);
-
-		List<Integer> relevantDates = calculateRelevantDates();
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDateTime requestTime = toLocalDateTime(date, hour);
+		int first = Integer.parseInt(requestTime.minusDays(1).format(formatter));
+		int last = Integer.parseInt(requestTime.plusDays(1).format(formatter));
 		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
-		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(relevantDates, tideObservatory);
+		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(first, last, tideObservatory);
 
-		LocalDateTime now = LocalDateTime.now();
-		TideInfo closestPreviousTideRecord = findClosestPreviousTideRecord(tideRecords, now);
-		TideInfo closestNextTideRecord = findClosestNextTideRecord(tideRecords, now);
+		TideInfo closestPreviousTideRecord = findClosestPreviousTideRecord(tideRecords, requestTime);
+		TideInfo closestNextTideRecord = findClosestNextTideRecord(tideRecords, requestTime);
+
+		List<TideInfo> tideInfoList = new ArrayList<>();
+		if (closestPreviousTideRecord != null) {
+			tideInfoList.add(closestPreviousTideRecord);
+		}
+		if (closestNextTideRecord != null) {
+			tideInfoList.add(closestNextTideRecord);
+		}
 
 		getAllScores(weather, tideRecords);
 		int tidePercentage = calculateTidePercentage(tideRecords);
 		return WeatherDetail.of(
 			weather,
 			new ArrayList<>(),
-			List.of(closestPreviousTideRecord, closestNextTideRecord),
+			tideInfoList,
 			getAllScores(weather, tideRecords),
 			tidePercentage
 		);
@@ -580,16 +593,6 @@ public class WeatherService {
 			.toList();
 	}
 
-	private List<Integer> calculateRelevantDates() {
-		LocalDateTime now = LocalDateTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-		return List.of(
-			Integer.parseInt(now.minusDays(1).format(formatter)), // 어제
-			Integer.parseInt(now.format(formatter)),             // 오늘
-			Integer.parseInt(now.plusDays(1).format(formatter))  // 내일
-		);
-	}
-
 	private List<ActivityScore> getAllScores(Weather weather, List<TideRecord> tideRecords) {
 		List<ActivityScore> scores = new ArrayList<>();
 		scores.add(new ActivityScore(SNORKELING.getValue(), calculateSnorkelingScore(weather, tideRecords)));
@@ -615,6 +618,17 @@ public class WeatherService {
 			.min(Comparator.comparing(TideRecord::getTidalTime))
 			.map(record -> new TideInfo(record.getTidalLevel(), record.getTidalTime(), record.getCode()))
 			.orElse(null); // Optional에서 직접 null 반환
+	}
+
+	private LocalDateTime toLocalDateTime(int date, int hour) {
+		String dateTimeString = "";
+		if (hour == 0) {
+			dateTimeString = String.format("%08d0000", date);
+		} else {
+			dateTimeString = String.format("%08d%02d", date, hour);
+		}
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+		return LocalDateTime.parse(dateTimeString, formatter);
 	}
 }
 

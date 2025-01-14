@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> exceptionHandler(Exception e) {
-		log.error(e.toString());
+		log.error("internal server error", e);
 		ErrorResponse body = ErrorResponse.builder()
 			.code("500")
 			.message("Internal Server Error")

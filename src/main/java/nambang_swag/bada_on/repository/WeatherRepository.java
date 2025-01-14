@@ -14,9 +14,7 @@ public interface WeatherRepository extends JpaRepository<Weather, Integer> {
 
 	Optional<Weather> findByDateAndTimeAndPlace(int date, int time, Place place);
 
-	@Query("SELECT w FROM Weather w WHERE w.place.id = :placeId AND w.date >= :date")
-	List<Weather> findWeatherByPlaceIdWithDateGreaterThan(@Param("placeId") Long placeId, @Param("date") int date);
-
-	@Query("SELECT w FROM Weather w WHERE w.date > :date OR (w.date = :date AND w.time >= :time) AND w.isUpdated = true")
+	@Query("SELECT w FROM Weather w WHERE w.date >= :date AND w.isUpdated = true")
 	List<Weather> getWeatherIsUpdated(@Param("date") int date, @Param("time") int time);
+
 }

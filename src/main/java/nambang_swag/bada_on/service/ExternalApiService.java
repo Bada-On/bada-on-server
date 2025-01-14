@@ -105,7 +105,7 @@ public class ExternalApiService {
 	public void getTidalForecast() {
 		log.info("조석예보 정보 수집 시작");
 		LocalDateTime now = LocalDateTime.now();
-		for (int i = 0; i < 3; i++) {
+		for (int i = -1; i < 6; i++) {
 			LocalDateTime time = now.plusDays(i);
 			for (TideObservatory tideObservatory : TideObservatory.values()) {
 				try {

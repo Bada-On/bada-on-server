@@ -16,9 +16,7 @@ public interface TideRepository extends JpaRepository<TideRecord, Long> {
 	Optional<TideRecord> findByDateAndTideObservatoryAndTidalTime(int date, TideObservatory tideObservatory,
 		LocalDateTime time);
 
-	List<TideRecord> findAllByDateAndTideObservatory(int date, TideObservatory tideObservatory);
-
-	@Query("SELECT t FROM TideRecord t WHERE t.date IN :dates AND t.tideObservatory = :tideObservatory")
-	List<TideRecord> findAllByDatesAndTideObservatory(@Param("dates") List<Integer> dates,
+	@Query("SELECT t FROM TideRecord t WHERE t.date >= :first AND t.date <= :last AND t.tideObservatory = :tideObservatory")
+	List<TideRecord> findAllByDatesAndTideObservatory(@Param("first") int first, @Param("last") int last,
 		@Param("tideObservatory") TideObservatory tideObservatory);
 }
