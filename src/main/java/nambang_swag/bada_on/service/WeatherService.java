@@ -70,7 +70,7 @@ public class WeatherService {
 		Place place = placeRepository.findById(placeId).orElseThrow(PlaceNotFound::new);
 		Weather weather = weatherRepository.findByDateAndTimeAndPlace(date, hour * 100, place)
 			.orElseThrow(WeatherNotFound::new);
-		
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 		LocalDateTime requestTime = toLocalDateTime(date, hour);
 		int first = Integer.parseInt(requestTime.minusDays(1).format(formatter));
@@ -623,11 +623,11 @@ public class WeatherService {
 	private LocalDateTime toLocalDateTime(int date, int hour) {
 		String dateTimeString = "";
 		if (hour == 0) {
-			dateTimeString = String.format("%08d0000", date);
+			dateTimeString = String.format("%08d00", date);
 		} else {
 			dateTimeString = String.format("%08d%02d", date, hour);
 		}
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHH");
 		return LocalDateTime.parse(dateTimeString, formatter);
 	}
 }
