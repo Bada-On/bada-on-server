@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +62,7 @@ public class WeatherService {
 		return WeatherSummary.of(
 			weather,
 			new ArrayList<>(),
-			getRecommendActivity(weather, tideRecords),
+			getRecommendActivities(weather, tideRecords),
 			tidePercentage
 		);
 	}
@@ -100,7 +101,7 @@ public class WeatherService {
 		);
 	}
 
-	private Activity getRecommendActivity(Weather weather, List<TideRecord> tideRecords) {
+	private List<String> getRecommendActivities(Weather weather, List<TideRecord> tideRecords) {
 		Map<Activity, Integer> activityScores = new HashMap<>();
 
 		activityScores.put(SNORKELING, calculateSnorkelingScore(weather, tideRecords));
@@ -109,10 +110,12 @@ public class WeatherService {
 		activityScores.put(KAYAKING_AND_PADDLE_BOARDING, calculateKayakingPaddleBoardingScore(weather, tideRecords));
 		activityScores.put(SURFING, calculateSurfingScore(weather, tideRecords));
 
+		int maxScore = Collections.max(activityScores.values());
+
 		return activityScores.entrySet().stream()
-			.max(Map.Entry.comparingByValue())
-			.orElseThrow(() -> new IllegalStateException("No activity scores available"))
-			.getKey();
+			.filter(entry -> entry.getValue() == maxScore)
+			.map(entry -> entry.getKey().getValue())
+			.collect(Collectors.toList());
 	}
 
 	// Calculate Point

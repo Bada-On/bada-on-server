@@ -2,27 +2,26 @@ package nambang_swag.bada_on.response;
 
 import java.util.List;
 
-import nambang_swag.bada_on.constant.Activity;
 import nambang_swag.bada_on.entity.Weather;
 
 public record WeatherSummary(
 	int date,
 	int hour,
 	List<String> warning,
-	String recommendActivity,
+	List<String> recommendActivity,
 	String skyCondition,
 	float temperature,
 	String wind,
 	float tideHeight,
 	float waveHeight
 ) {
-	public static WeatherSummary of(Weather weather, List<String> warning, Activity recommendActivity,
+	public static WeatherSummary of(Weather weather, List<String> warning, List<String> recommendActivities,
 		float tideHeight) {
 		return new WeatherSummary(
 			weather.getDate(),
 			weather.getTime() / 100,
 			warning,
-			recommendActivity.getValue(),
+			recommendActivities,
 			getSkyCondition(weather),
 			weather.getHourlyTemperature(),
 			getWindString(weather.getWindSpeed()),
