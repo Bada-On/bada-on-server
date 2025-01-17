@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import nambang_swag.bada_on.request.PlaceRegister;
-import nambang_swag.bada_on.service.ExternalApiService;
 import nambang_swag.bada_on.service.PlaceService;
 
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class DataLoader implements CommandLineRunner {
 	@Override
 	public void run(String... args) {
 		List<String> commonActivities = Arrays.asList("diving", "snorkeling", "swimming", "surfing",
-			"kayakingPaddleBoarding");
+			"padding");
 
 		List<PlaceRegister> places = new ArrayList<>();
 		places.add(new PlaceRegister("협재 해수욕장", 33.394, 126.239, "제주 제주시 한림읍 한림로 329-10", commonActivities));

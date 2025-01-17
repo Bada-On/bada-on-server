@@ -107,7 +107,7 @@ public class WeatherService {
 		activityScores.put(SNORKELING, calculateSnorkelingScore(weather, tideRecords));
 		activityScores.put(SWIMMING, calculateSwimmingScore(weather, tideRecords));
 		activityScores.put(DIVING, calculateDivingScore(weather, tideRecords));
-		activityScores.put(KAYAKING_AND_PADDLE_BOARDING, calculateKayakingPaddleBoardingScore(weather, tideRecords));
+		activityScores.put(PADDING, calculatePaddingScore(weather, tideRecords));
 		activityScores.put(SURFING, calculateSurfingScore(weather, tideRecords));
 
 		int maxScore = Collections.max(activityScores.values());
@@ -479,7 +479,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculateKayakingPaddleBoardingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculatePaddingScore(Weather weather, List<TideRecord> tideRecords) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -602,8 +602,7 @@ public class WeatherService {
 		scores.add(new ActivityScore(DIVING.getValue(), calculateDivingScore(weather, tideRecords)));
 		scores.add(new ActivityScore(SURFING.getValue(), calculateSurfingScore(weather, tideRecords)));
 		scores.add(new ActivityScore(SWIMMING.getValue(), calculateSwimmingScore(weather, tideRecords)));
-		scores.add(new ActivityScore(KAYAKING_AND_PADDLE_BOARDING.getValue(),
-			calculateKayakingPaddleBoardingScore(weather, tideRecords)));
+		scores.add(new ActivityScore(PADDING.getValue(), calculatePaddingScore(weather, tideRecords)));
 		return scores;
 	}
 

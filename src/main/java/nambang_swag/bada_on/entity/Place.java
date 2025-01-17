@@ -47,7 +47,7 @@ public class Place {
 	private boolean canDiving;
 	private boolean canSwimming;
 	private boolean canSurfing;
-	private boolean canKayakingPaddleBoarding;
+	private boolean canPadding;
 
 	@Builder
 	public Place(String name, Double latitude, Double longitude, String address, int nx, int ny) {
@@ -65,7 +65,7 @@ public class Place {
 			case DIVING -> canDiving = isEnabled;
 			case SWIMMING -> canSwimming = isEnabled;
 			case SURFING -> canSurfing = isEnabled;
-			case KAYAKING_AND_PADDLE_BOARDING -> canKayakingPaddleBoarding = isEnabled;
+			case PADDING -> canPadding = isEnabled;
 		}
 	}
 
@@ -83,8 +83,8 @@ public class Place {
 		if (this.canSurfing) {
 			activities.add(SURFING.getValue());
 		}
-		if (this.canKayakingPaddleBoarding) {
-			activities.add(KAYAKING_AND_PADDLE_BOARDING.getValue());
+		if (this.canPadding) {
+			activities.add(PADDING.getValue());
 		}
 		return activities;
 	}

@@ -103,8 +103,8 @@ public class PlaceService {
 			case SURFING -> {
 				return placeRepository.findAllByCanSurfingIsTrue();
 			}
-			case KAYAKING_AND_PADDLE_BOARDING -> {
-				return placeRepository.findAllByCanKayakingPaddleBoardingIsTrue();
+			case PADDING -> {
+				return placeRepository.findAllByCanPaddingIsTrue();
 			}
 			default -> {
 				return new ArrayList<>();
