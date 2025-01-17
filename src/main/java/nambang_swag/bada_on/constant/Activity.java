@@ -10,7 +10,7 @@ public enum Activity {
 	DIVING("diving"),
 	SWIMMING("swimming"),
 	SURFING("surfing"),
-	KAYAKING_AND_PADDLE_BOARDING("kayakingPaddleBoarding");
+	PADDING("padding");
 
 	private final String value;
 
