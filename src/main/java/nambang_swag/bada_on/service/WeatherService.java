@@ -581,8 +581,12 @@ public class WeatherService {
 		return 0; // 범위 밖의 시간인 경우
 	}
 
-	public List<AvailableTime> getAvailableTime(Integer date, Integer hour) {
-		return weatherRepository.getWeatherIsUpdated(date, hour * 100).stream()
+	public List<AvailableTime> getAvailableTime(Integer date) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		LocalDateTime requestTime = toLocalDateTime(date, 0);
+		int requestDate = Integer.parseInt(requestTime.minusDays(1).format(formatter));
+
+		return weatherRepository.getWeatherIsUpdated(requestDate, 0).stream()
 			.collect(Collectors.groupingBy(
 				Weather::getDate,
 				Collectors.mapping(weather -> weather.getTime() / 100, Collectors.toSet()) // Remove duplicates

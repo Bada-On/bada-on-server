@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import nambang_swag.bada_on.request.AvailableTimeRequest;
 import nambang_swag.bada_on.response.AvailableTime;
 import nambang_swag.bada_on.response.WeatherDetail;
 import nambang_swag.bada_on.response.WeatherSummary;
@@ -47,9 +49,8 @@ public class WeatherController {
 	@Operation(summary = "조회 가능한 시간 조회", description = "날씨 조회가 가능한 시간 조회")
 	@GetMapping("/available")
 	public ResponseEntity<List<AvailableTime>> getAvailableTime(
-		@RequestParam("date") Integer date,
-		@RequestParam("hour") Integer hour
+		@Valid AvailableTimeRequest request
 	) {
-		return ResponseEntity.ok(weatherService.getAvailableTime(date, hour));
+		return ResponseEntity.ok(weatherService.getAvailableTime(Integer.valueOf(request.date())));
 	}
 }
