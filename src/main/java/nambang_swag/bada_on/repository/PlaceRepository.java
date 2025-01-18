@@ -16,5 +16,5 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
 	List<Place> findAllByCanSurfingIsTrue();
 
-	List<Place> findAllByCanPaddingIsTrue();
+	List<Place> findAllByCanPaddlingIsTrue();
 }

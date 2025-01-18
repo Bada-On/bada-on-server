@@ -104,7 +104,7 @@ public class PlaceService {
 				return placeRepository.findAllByCanSurfingIsTrue();
 			}
 			case PADDlING -> {
-				return placeRepository.findAllByCanPaddingIsTrue();
+				return placeRepository.findAllByCanPaddlingIsTrue();
 			}
 			default -> {
 				return new ArrayList<>();

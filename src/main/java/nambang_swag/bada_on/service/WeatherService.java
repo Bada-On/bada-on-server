@@ -6,9 +6,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -102,20 +103,31 @@ public class WeatherService {
 	}
 
 	private List<String> getRecommendActivities(Weather weather, List<TideRecord> tideRecords) {
-		Map<Activity, Integer> activityScores = new HashMap<>();
+		List<Activity> activities = Arrays.asList(
+			SNORKELING,
+			SWIMMING,
+			DIVING,
+			SURFING,
+			PADDlING
+		);
 
-		activityScores.put(SNORKELING, calculateSnorkelingScore(weather, tideRecords));
-		activityScores.put(SWIMMING, calculateSwimmingScore(weather, tideRecords));
-		activityScores.put(DIVING, calculateDivingScore(weather, tideRecords));
-		activityScores.put(PADDlING, calculatePaddlingScore(weather, tideRecords));
-		activityScores.put(SURFING, calculateSurfingScore(weather, tideRecords));
+		Map<Activity, Integer> activityScores = new LinkedHashMap<>();
+
+		for (Activity activity : activities) {
+			int score = calculateActivityScore(activity, weather, tideRecords);
+			activityScores.put(activity, score);
+		}
 
 		int maxScore = Collections.max(activityScores.values());
 
-		return activityScores.entrySet().stream()
+		List<String> recommendedActivities = activityScores.entrySet().stream()
 			.filter(entry -> entry.getValue() == maxScore)
 			.map(entry -> entry.getKey().getValue())
 			.collect(Collectors.toList());
+
+		return recommendedActivities.size() > 1
+			? recommendedActivities.subList(0, 2)
+			: recommendedActivities;
 	}
 
 	// Calculate Point
@@ -635,6 +647,17 @@ public class WeatherService {
 		}
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHH");
 		return LocalDateTime.parse(dateTimeString, formatter);
+	}
+
+	private int calculateActivityScore(Activity activity, Weather weather, List<TideRecord> tideRecords) {
+		return switch (activity) {
+			case SNORKELING -> calculateSnorkelingScore(weather, tideRecords);
+			case SWIMMING -> calculateSwimmingScore(weather, tideRecords);
+			case DIVING -> calculateDivingScore(weather, tideRecords);
+			case SURFING -> calculateSurfingScore(weather, tideRecords);
+			case PADDlING -> calculatePaddlingScore(weather, tideRecords);
+			default -> 0;
+		};
 	}
 }
 
