@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nambang_swag.bada_on.constant.Activity;
+import nambang_swag.bada_on.constant.WarningRegion;
 import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.request.PlaceRegister;
@@ -36,6 +37,8 @@ public class PlaceService {
 			.longitude(request.longitude())
 			.latitude(request.latitude())
 			.address(request.address())
+			.landRegion(WarningRegion.from(request.landRegion()))
+			.seaRegion(WarningRegion.from(request.seaRegion()))
 			.nx(grid[0])
 			.ny(grid[1])
 			.build();

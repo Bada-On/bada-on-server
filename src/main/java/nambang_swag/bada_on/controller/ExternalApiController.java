@@ -45,4 +45,9 @@ public class ExternalApiController {
 	public void fetchDailyForecast() {
 		externalApiService.getSunRiseSetData();
 	}
+
+	@GetMapping("/warning")
+	public void fetchWarningData() {
+		externalApiService.getWeatherWarning();
+	}
 }

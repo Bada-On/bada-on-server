@@ -2,6 +2,8 @@ package nambang_swag.bada_on.service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,20 +19,27 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nambang_swag.bada_on.constant.TideObservatory;
+import nambang_swag.bada_on.constant.WarningCode;
+import nambang_swag.bada_on.constant.WarningLevel;
+import nambang_swag.bada_on.constant.WarningRegion;
 import nambang_swag.bada_on.entity.DailyWeather;
 import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.entity.TideRecord;
+import nambang_swag.bada_on.entity.Warning;
+import nambang_swag.bada_on.entity.WarningStatus;
 import nambang_swag.bada_on.entity.Weather;
 import nambang_swag.bada_on.external.SunRiseSetForeCastApiResponse;
 import nambang_swag.bada_on.external.TideApiResponse;
 import nambang_swag.bada_on.external.WaterTemperatureForecastApiResponse;
 import nambang_swag.bada_on.external.WeatherForeCastApiResponse;
 import nambang_swag.bada_on.external.WeatherNowCastApiResponse;
+import nambang_swag.bada_on.external.WeatherWarningResponse;
 import nambang_swag.bada_on.repository.DailyWeatherRepository;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.repository.TideRepository;
+import nambang_swag.bada_on.repository.WarningRepository;
 import nambang_swag.bada_on.repository.WeatherRepository;
-import nambang_swag.bada_on.constant.TideObservatory;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +49,7 @@ public class ExternalApiService {
 
 	private final PlaceRepository placeRepository;
 	private final WeatherRepository weatherRepository;
+	private final WarningRepository warningRepository;
 
 	private final ObjectMapper objectMapper;
 	private final TideRepository tideRepository;
@@ -48,6 +58,9 @@ public class ExternalApiService {
 
 	@Value("${secrets.external.WEATHER_API_BASE_URL}")
 	private String WEATHER_API_BASE_URL;
+
+	@Value("${secrets.external.WEATHER_WARNING_API_BASE_URL}")
+	private String WEATHER_WARNING_API_BASE_URL;
 
 	@Value("${secrets.external.WEATHER_API_KEY}")
 	private String WEATHER_API_KEY;
@@ -145,9 +158,19 @@ public class ExternalApiService {
 		log.info("수온 정보 수집 종료");
 	}
 
+	// 기상특보 가져오기
+	@Transactional
+	public void getWeatherWarning() {
+		WeatherWarningResponse response = callWeatherWarningResponseApi();
+		if (response.getResponse().getHeader().getResultCode().equals("00")) {
+			processWeatherWarningData(response);
+		}
+	}
+
 	@Scheduled(cron = "0 11 * * * *")
 	public void fetchShortTermForecastData() {
 		getShortTermForecast();
+		getWeatherWarning();
 	}
 
 	@Scheduled(cron = "0 46 * * * *")
@@ -312,6 +335,28 @@ public class ExternalApiService {
 		}
 	}
 
+	private WeatherWarningResponse callWeatherWarningResponseApi() {
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime past = now.minusDays(4);
+		String stringNow = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		String StringPast = past.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		RestClient restClient = RestClient.builder()
+			.baseUrl(WEATHER_WARNING_API_BASE_URL)
+			.build();
+		return restClient.get()
+			.uri(uriBuilder -> uriBuilder.path("/getWthrWrnMsg")
+				.queryParam("serviceKey", WEATHER_API_KEY)
+				.queryParam("numOfRows", 100)
+				.queryParam("pageNo", 1)
+				.queryParam("fromTmFc", StringPast)
+				.queryParam("toTmFc", stringNow)
+				.queryParam("stnId", 184)
+				.queryParam("dataType", "JSON")
+				.build())
+			.retrieve()
+			.body(WeatherWarningResponse.class);
+	}
+
 	private void processWeatherForecastData(WeatherForeCastApiResponse response, Place place) {
 		if (!response.getResponse().getHeader().getResultCode().equals("00")) {
 			log.info("API Call failed: {}", response.getResponse().getHeader().getResultMsg());
@@ -385,6 +430,85 @@ public class ExternalApiService {
 			weather.updateWaterTemperature(data.getTemperature());
 			weatherRepository.save(weather);
 		}
+	}
+
+	private void processWeatherWarningData(WeatherWarningResponse response) {
+		List<WeatherWarningResponse.Item> itemList = response.getResponse().getBody().getItems().getItem();
+		itemList.sort(Comparator.comparingInt(WeatherWarningResponse.Item::getTmSeq));
+		itemList.forEach(item -> {
+			String[] warningArea = item.getT2().split("\\r\\n");
+			String[] warningValidTime = item.getT3().split("\\r\\n");
+
+			for (int i = 0; i < warningArea.length; i++) {
+				String[] area = warningArea[i].split(" : ");
+				LocalDateTime validTime = LocalDateTime.parse(
+					warningValidTime[i].split(" : ")[1].trim(), DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
+				String warning = area[0].split(" ")[1];
+				WarningCode code;
+				WarningLevel level;
+				if (warning.endsWith("경보")) {
+					code = WarningCode.from(warning.substring(0, warning.length() - 2));
+					level = WarningLevel.WARNING;
+				} else if (warning.endsWith("주의보")) {
+					code = WarningCode.from(warning.substring(0, warning.length() - 3));
+					level = WarningLevel.ADVISORY;
+				} else {
+					code = null;
+					level = WarningLevel.NONE;
+				}
+				WarningStatus status = WarningStatus.from(area[0].split(" ")[2]);
+				
+				String[] warningAreaSplit = area[1].split(",(?![^()]*\\))"); // 기상특보
+				for (String split : warningAreaSplit) {
+					String[] split4 = split.split("\\(");
+					List<String> regionList = new ArrayList<>();
+					if (split4.length > 1) {
+						String content = split4[1].substring(0, split4[1].length() - 1);
+						String[] stringRegions = content.split(",");
+						for (String stringRegion : stringRegions) {
+							if (WarningRegion.contains(stringRegion)) {
+								regionList.add(stringRegion);
+							}
+						}
+					}
+					if (!regionList.isEmpty()) {
+						regionList.forEach(region -> {
+							switch (status) {
+								case ISSUED -> {
+									Warning newWarning = Warning.builder()
+										.status(status)
+										.code(code)
+										.level(level)
+										.region(WarningRegion.from(region))
+										.issuedAt(validTime)
+										.liftedAt(null)
+										.build();
+									warningRepository.save(newWarning);
+								}
+								case MODIFIED -> {
+									warningRepository.findByRegionAndCodeAndLevelAndStatusIn(
+										WarningRegion.from(region),
+										code,
+										level,
+										List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)
+									).ifPresent(Warning::warningModified);
+								}
+								case LIFTED -> {
+									warningRepository.findByRegionAndCodeAndLevelAndStatusIn(
+										WarningRegion.from(region),
+										code,
+										level,
+										List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)
+									).ifPresent(w -> {
+										w.warningLifted(validTime);
+									});
+								}
+							}
+						});
+					}
+				}
+			}
+		});
 	}
 
 	// 가장 가까운 단기예보 BaseTime가져오기

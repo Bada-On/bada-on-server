@@ -25,15 +25,19 @@ import nambang_swag.bada_on.constant.SkyCondition;
 import nambang_swag.bada_on.constant.TideObservatory;
 import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.entity.TideRecord;
+import nambang_swag.bada_on.entity.WarningStatus;
 import nambang_swag.bada_on.entity.Weather;
 import nambang_swag.bada_on.exception.PlaceNotFound;
 import nambang_swag.bada_on.exception.WeatherNotFound;
 import nambang_swag.bada_on.repository.PlaceRepository;
 import nambang_swag.bada_on.repository.TideRepository;
+import nambang_swag.bada_on.repository.WarningRepository;
 import nambang_swag.bada_on.repository.WeatherRepository;
 import nambang_swag.bada_on.response.ActivityScore;
 import nambang_swag.bada_on.response.AvailableTime;
 import nambang_swag.bada_on.response.TideInfo;
+import nambang_swag.bada_on.response.WarningDetail;
+import nambang_swag.bada_on.response.WarningResponse;
 import nambang_swag.bada_on.response.WeatherDetail;
 import nambang_swag.bada_on.response.WeatherSummary;
 
@@ -46,6 +50,7 @@ public class WeatherService {
 	private final WeatherRepository weatherRepository;
 	private final TideRepository tideRepository;
 	private final PlaceRepository placeRepository;
+	private final WarningRepository warningRepository;
 
 	public WeatherSummary getWeatherSummary(Long id, int date, int hour) {
 		Place place = placeRepository.findById(id).orElseThrow(PlaceNotFound::new);
@@ -59,10 +64,20 @@ public class WeatherService {
 		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
 		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(first, last, tideObservatory);
 
+		List<String> stringWarnings = new ArrayList<>();
+		stringWarnings.addAll(warningRepository.findAllByRegionAndStatusIn(place.getLandRegion(),
+				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
+			.map(warning -> warning.getCode().getDescription() + warning.getLevel().getDescription())
+			.toList());
+		stringWarnings.addAll(warningRepository.findAllByRegionAndStatusIn(place.getSeaRegion(),
+				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
+			.map(warning -> warning.getCode().getDescription() + warning.getLevel().getDescription())
+			.toList());
+
 		int tidePercentage = calculateTidePercentage(tideRecords);
 		return WeatherSummary.of(
 			weather,
-			new ArrayList<>(),
+			stringWarnings,
 			getRecommendActivities(weather, tideRecords),
 			tidePercentage
 		);
@@ -91,11 +106,21 @@ public class WeatherService {
 			tideInfoList.add(closestNextTideRecord);
 		}
 
+		List<WarningDetail> warningDetails = new ArrayList<>();
+		warningDetails.addAll(warningRepository.findAllByRegionAndStatusIn(place.getLandRegion(),
+				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
+			.map(WarningDetail::from)
+			.toList());
+		warningDetails.addAll(warningRepository.findAllByRegionAndStatusIn(place.getSeaRegion(),
+				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
+			.map(WarningDetail::from)
+			.toList());
+
 		getAllScores(weather, tideRecords);
 		int tidePercentage = calculateTidePercentage(tideRecords);
 		return WeatherDetail.of(
 			weather,
-			new ArrayList<>(),
+			warningDetails,
 			tideInfoList,
 			getAllScores(weather, tideRecords),
 			tidePercentage
@@ -656,8 +681,19 @@ public class WeatherService {
 			case DIVING -> calculateDivingScore(weather, tideRecords);
 			case SURFING -> calculateSurfingScore(weather, tideRecords);
 			case PADDlING -> calculatePaddlingScore(weather, tideRecords);
-			default -> 0;
 		};
 	}
+
+	public List<WarningResponse> getAllWeatherWarning() {
+		List<WarningStatus> statuses = List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED);
+
+		return warningRepository.findAllByStatusIn(statuses).stream()
+			.flatMap(warning -> placeRepository.findAllByLandRegionOrSeaRegion(warning.getRegion())
+				.stream()
+				.map(place -> new WarningResponse(place.getId(),
+					warning.getCode().getDescription() + warning.getLevel().getDescription())))
+			.toList();
+	}
+
 }
 

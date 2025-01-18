@@ -22,6 +22,12 @@ public record PlaceRegister(
 	@NotNull(message = "등록할 장소의 주소를 입력해주세요.")
 	String address,
 
-	List<String> activities
+	List<String> activities,
+
+	@NotNull
+	String landRegion,
+
+	@NotNull
+	String seaRegion
 ) {
 }

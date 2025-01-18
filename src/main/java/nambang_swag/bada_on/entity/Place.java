@@ -8,6 +8,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
@@ -15,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import nambang_swag.bada_on.constant.Activity;
+import nambang_swag.bada_on.constant.WarningRegion;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -43,20 +46,40 @@ public class Place {
 	@Column(nullable = false)
 	private int ny;
 
+	@Column(nullable = false)
+	@Enumerated(value = EnumType.STRING)
+	private WarningRegion landRegion;
+
+	@Column(nullable = false)
+	@Enumerated(value = EnumType.STRING)
+	private WarningRegion seaRegion;
+
+	@Column(nullable = false)
 	private boolean canSnorkeling;
+
+	@Column(nullable = false)
 	private boolean canDiving;
+
+	@Column(nullable = false)
 	private boolean canSwimming;
+
+	@Column(nullable = false)
 	private boolean canSurfing;
+
+	@Column(nullable = false)
 	private boolean canPaddling;
 
 	@Builder
-	public Place(String name, Double latitude, Double longitude, String address, int nx, int ny) {
+	public Place(String name, Double latitude, Double longitude, String address, int nx, int ny,
+		WarningRegion landRegion, WarningRegion seaRegion) {
 		this.name = name;
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.address = address;
 		this.nx = nx;
 		this.ny = ny;
+		this.landRegion = landRegion;
+		this.seaRegion = seaRegion;
 	}
 
 	public void updateActivityStatus(Activity activity, boolean isEnabled) {
