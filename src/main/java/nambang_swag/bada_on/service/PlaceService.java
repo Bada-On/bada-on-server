@@ -103,7 +103,7 @@ public class PlaceService {
 			case SURFING -> {
 				return placeRepository.findAllByCanSurfingIsTrue();
 			}
-			case PADDING -> {
+			case PADDlING -> {
 				return placeRepository.findAllByCanPaddingIsTrue();
 			}
 			default -> {
