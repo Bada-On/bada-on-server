@@ -72,9 +72,9 @@ public class WeatherService {
 			.toList();
 
 		List<String> recommendActivities =
-			stringWarningList.isEmpty() ? getRecommendActivities(weather, tideRecords) : new ArrayList<>();
+			stringWarningList.isEmpty() ? getRecommendActivities(weather, tideRecords, requestTime) : new ArrayList<>();
 
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		return WeatherSummary.of(
 			weather,
 			stringWarningList,
@@ -116,18 +116,18 @@ public class WeatherService {
 			.map(WarningDetail::from)
 			.toList());
 
-		getAllScores(weather, tideRecords);
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		return WeatherDetail.of(
 			weather,
 			warningDetails,
 			tideInfoList,
-			getAllScores(weather, tideRecords),
+			getAllScores(weather, tideRecords, requestTime),
 			tidePercentage
 		);
 	}
 
-	private List<String> getRecommendActivities(Weather weather, List<TideRecord> tideRecords) {
+	private List<String> getRecommendActivities(Weather weather, List<TideRecord> tideRecords,
+		LocalDateTime requestTIme) {
 		List<Activity> activities = Arrays.asList(
 			SNORKELING,
 			SWIMMING,
@@ -139,7 +139,7 @@ public class WeatherService {
 		Map<Activity, Integer> activityScores = new LinkedHashMap<>();
 
 		for (Activity activity : activities) {
-			int score = calculateActivityScore(activity, weather, tideRecords);
+			int score = calculateActivityScore(activity, weather, tideRecords, requestTIme);
 			activityScores.put(activity, score);
 		}
 
@@ -157,7 +157,7 @@ public class WeatherService {
 	}
 
 	// Calculate Point
-	private int calculateSnorkelingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculateSnorkelingScore(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -214,7 +214,7 @@ public class WeatherService {
 		}
 
 		// 물때
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		if (tidePercentage >= 50 && tidePercentage < 70) {
 			totalScore += 20; // 매우 적합
 		} else if ((tidePercentage >= 30 && tidePercentage < 50) || (tidePercentage >= 70 && tidePercentage < 90)) {
@@ -249,7 +249,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculateDivingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculateDivingScore(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -306,7 +306,7 @@ public class WeatherService {
 		}
 
 		// 물때
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		if (tidePercentage >= 70) {
 			totalScore += 15; // 매우 적합
 		} else if (tidePercentage >= 50) {
@@ -340,7 +340,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculateSurfingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculateSurfingScore(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -397,7 +397,7 @@ public class WeatherService {
 		}
 
 		// 물때
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		if (tidePercentage >= 70) {
 			totalScore += 15; // 매우 적합
 		} else if (tidePercentage >= 50) {
@@ -431,7 +431,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculateSwimmingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculateSwimmingScore(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -484,7 +484,7 @@ public class WeatherService {
 			totalScore += 2;
 		}
 
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		if (tidePercentage >= 50 && tidePercentage < 70) {
 			totalScore += 15; // 매우 적합
 		} else if (tidePercentage >= 40 && tidePercentage < 50) {
@@ -517,7 +517,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculatePaddlingScore(Weather weather, List<TideRecord> tideRecords) {
+	private int calculatePaddlingScore(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		int totalScore = 0;
 
 		SkyCondition skyCondition = weather.getSkyCondition();
@@ -570,7 +570,7 @@ public class WeatherService {
 			totalScore += 2;
 		}
 
-		int tidePercentage = calculateTidePercentage(tideRecords);
+		int tidePercentage = calculateTidePercentage(tideRecords, requestTime);
 		if (tidePercentage >= 50 && tidePercentage < 70) {
 			totalScore += 15; // 매우 적합
 		} else if (tidePercentage >= 40 && tidePercentage < 50) {
@@ -602,7 +602,7 @@ public class WeatherService {
 		return totalScore;
 	}
 
-	private int calculateTidePercentage(List<TideRecord> tideRecords) {
+	private int calculateTidePercentage(List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		tideRecords.sort(Comparator.comparing(TideRecord::getTidalTime));
 		LocalDateTime now = LocalDateTime.now();
 
@@ -610,9 +610,9 @@ public class WeatherService {
 			LocalDateTime start = tideRecords.get(i).getTidalTime();
 			LocalDateTime end = tideRecords.get(i + 1).getTidalTime();
 
-			if (now.isAfter(start) && now.isBefore(end)) {
+			if (requestTime.isAfter(start) && requestTime.isBefore(end)) {
 				long totalMinutes = ChronoUnit.MINUTES.between(start, end);
-				long elapsedMinutes = ChronoUnit.MINUTES.between(start, now);
+				long elapsedMinutes = ChronoUnit.MINUTES.between(start, requestTime);
 				return (int)((double)elapsedMinutes / totalMinutes * 100);
 			}
 		}
@@ -638,13 +638,14 @@ public class WeatherService {
 			.toList();
 	}
 
-	private List<ActivityScore> getAllScores(Weather weather, List<TideRecord> tideRecords) {
+	private List<ActivityScore> getAllScores(Weather weather, List<TideRecord> tideRecords, LocalDateTime requestTime) {
 		List<ActivityScore> scores = new ArrayList<>();
-		scores.add(new ActivityScore(SNORKELING.getValue(), calculateSnorkelingScore(weather, tideRecords)));
-		scores.add(new ActivityScore(DIVING.getValue(), calculateDivingScore(weather, tideRecords)));
-		scores.add(new ActivityScore(SURFING.getValue(), calculateSurfingScore(weather, tideRecords)));
-		scores.add(new ActivityScore(SWIMMING.getValue(), calculateSwimmingScore(weather, tideRecords)));
-		scores.add(new ActivityScore(PADDlING.getValue(), calculatePaddlingScore(weather, tideRecords)));
+		scores.add(
+			new ActivityScore(SNORKELING.getValue(), calculateSnorkelingScore(weather, tideRecords, requestTime)));
+		scores.add(new ActivityScore(DIVING.getValue(), calculateDivingScore(weather, tideRecords, requestTime)));
+		scores.add(new ActivityScore(SURFING.getValue(), calculateSurfingScore(weather, tideRecords, requestTime)));
+		scores.add(new ActivityScore(SWIMMING.getValue(), calculateSwimmingScore(weather, tideRecords, requestTime)));
+		scores.add(new ActivityScore(PADDlING.getValue(), calculatePaddlingScore(weather, tideRecords, requestTime)));
 		return scores;
 	}
 
@@ -675,13 +676,14 @@ public class WeatherService {
 		return LocalDateTime.parse(dateTimeString, formatter);
 	}
 
-	private int calculateActivityScore(Activity activity, Weather weather, List<TideRecord> tideRecords) {
+	private int calculateActivityScore(Activity activity, Weather weather, List<TideRecord> tideRecords,
+		LocalDateTime requestTime) {
 		return switch (activity) {
-			case SNORKELING -> calculateSnorkelingScore(weather, tideRecords);
-			case SWIMMING -> calculateSwimmingScore(weather, tideRecords);
-			case DIVING -> calculateDivingScore(weather, tideRecords);
-			case SURFING -> calculateSurfingScore(weather, tideRecords);
-			case PADDlING -> calculatePaddlingScore(weather, tideRecords);
+			case SNORKELING -> calculateSnorkelingScore(weather, tideRecords, requestTime);
+			case SWIMMING -> calculateSwimmingScore(weather, tideRecords, requestTime);
+			case DIVING -> calculateDivingScore(weather, tideRecords, requestTime);
+			case SURFING -> calculateSurfingScore(weather, tideRecords, requestTime);
+			case PADDlING -> calculatePaddlingScore(weather, tideRecords, requestTime);
 		};
 	}
 
