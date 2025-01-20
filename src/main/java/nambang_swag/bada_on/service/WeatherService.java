@@ -147,6 +147,7 @@ public class WeatherService {
 
 		List<String> recommendedActivities = activityScores.entrySet().stream()
 			.filter(entry -> entry.getValue() == maxScore)
+			.filter(entry -> entry.getValue() >= 40)
 			.map(entry -> entry.getKey().getValue())
 			.collect(Collectors.toList());
 
