@@ -25,6 +25,7 @@ import nambang_swag.bada_on.constant.SkyCondition;
 import nambang_swag.bada_on.constant.TideObservatory;
 import nambang_swag.bada_on.entity.Place;
 import nambang_swag.bada_on.entity.TideRecord;
+import nambang_swag.bada_on.entity.Warning;
 import nambang_swag.bada_on.entity.WarningStatus;
 import nambang_swag.bada_on.entity.Weather;
 import nambang_swag.bada_on.exception.PlaceNotFound;
@@ -687,12 +688,16 @@ public class WeatherService {
 
 	public List<WarningResponse> getAllWeatherWarning() {
 		List<WarningStatus> statuses = List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED);
-
-		return warningRepository.findAllByStatusIn(statuses).stream()
-			.flatMap(warning -> placeRepository.findAllByLandRegionOrSeaRegion(warning.getRegion())
-				.stream()
-				.map(place -> new WarningResponse(place.getId(),
-					warning.getCode().getDescription() + warning.getLevel().getDescription())))
+		return placeRepository.findAll().stream()
+			.map(place -> {
+				List<String> stringWarningList = warningRepository.findAllByPlaceRegionAndStatusIn(
+						place.getLandRegion(), place.getSeaRegion(),
+						statuses).stream()
+					.map(Warning::getWarningMessage)
+					.toList();
+				return new WarningResponse(place.getId(), stringWarningList);
+			})
+			.filter(warningResponse -> !warningResponse.warning().isEmpty())
 			.toList();
 	}
 

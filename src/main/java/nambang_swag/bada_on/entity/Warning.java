@@ -66,4 +66,8 @@ public class Warning {
 		this.status = WarningStatus.LIFTED;
 		this.liftedAt = liftedAt;
 	}
+
+	public String getWarningMessage() {
+		return this.code.getDescription() + this.level.getDescription();
+	}
 }
