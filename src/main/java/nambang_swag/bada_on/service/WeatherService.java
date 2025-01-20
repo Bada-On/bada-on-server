@@ -65,21 +65,20 @@ public class WeatherService {
 		TideObservatory tideObservatory = TideObservatory.findNearest(place.getLatitude(), place.getLongitude());
 		List<TideRecord> tideRecords = tideRepository.findAllByDatesAndTideObservatory(first, last, tideObservatory);
 
-		List<String> stringWarnings = new ArrayList<>();
-		stringWarnings.addAll(warningRepository.findAllByRegionAndStatusIn(place.getLandRegion(),
-				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
-			.map(warning -> warning.getCode().getDescription() + warning.getLevel().getDescription())
-			.toList());
-		stringWarnings.addAll(warningRepository.findAllByRegionAndStatusIn(place.getSeaRegion(),
-				List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED)).stream()
-			.map(warning -> warning.getCode().getDescription() + warning.getLevel().getDescription())
-			.toList());
+		List<WarningStatus> statuses = List.of(WarningStatus.ISSUED, WarningStatus.MODIFIED);
+		List<String> stringWarningList = warningRepository.findAllByPlaceRegionAndStatusIn(
+				place.getLandRegion(), place.getSeaRegion(),
+				statuses).stream().map(Warning::getWarningMessage)
+			.toList();
+
+		List<String> recommendActivities =
+			stringWarningList.isEmpty() ? getRecommendActivities(weather, tideRecords) : new ArrayList<>();
 
 		int tidePercentage = calculateTidePercentage(tideRecords);
 		return WeatherSummary.of(
 			weather,
-			stringWarnings,
-			getRecommendActivities(weather, tideRecords),
+			stringWarningList,
+			recommendActivities,
 			tidePercentage
 		);
 	}
