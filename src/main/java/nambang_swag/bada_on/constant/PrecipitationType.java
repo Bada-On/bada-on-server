@@ -27,6 +27,6 @@ public enum PrecipitationType {
 				return type;
 			}
 		}
-		throw new IllegalArgumentException("Invalid precipitation type code: " + code);
+		return NONE;
 	}
 }
